@@ -11,8 +11,11 @@ the tool reduces the risk of missing sanctioned entities due to name variations.
 Key Features
 
 Name normalization: Converts names to standardized formats to handle capitalization, accents, and special characters
+
 Tokenization: Breaks names into meaningful components for more flexible partial matching
+
 Transliteration awareness: Identifies matches across different spelling systems (e.g., 'Petrović', 'Petrovitch', 'Petrovitj')
+
 Bulk processing: Upload and scan multiple client records simultaneously
 
 Technical Implementation
