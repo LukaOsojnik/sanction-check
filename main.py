@@ -1,12 +1,11 @@
 import tkinter as tk
-import os
-os.environ['TK_SILENCE_DEPRECATION'] = '1'
+
 from di_container import DIContainer
 from interfaces import (
     IDownloadService, IProcessingService, IUIManager,
     IFileRepository, ISanctionsRepository
 )
-# Correct imports for concrete implementations
+
 from controllers.app_controller import AppController
 from controllers.ui_manager import UIManager
 from services.download_service import DownloadService  
