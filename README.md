@@ -19,13 +19,17 @@ Transliteration awareness: Identifies matches across different spelling systems 
 Bulk processing: Upload and scan multiple client records simultaneously
 
 Technical Implementation
+
 The application employs several techniques to improve matching accuracy:
 
 Unicode normalization
+
 Character substitution rules for cross-alphabet matching
+
 Token-based partial matching
 
 CSV Format for Client Data
+
 When using batch processing, your client CSV file should include the following columns:
 
 Ime,OIB,ADRESA
