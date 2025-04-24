@@ -33,11 +33,15 @@ CSV Format for Client Data
 When using batch processing, your client CSV file should include the following columns:
 
 Ime,OIB,ADRESA
+
 Ivan Horvat,12312345670,"Osjecka ulica 2, Zagreb"
+
 Ana Zaković,12345678901,"Vukovarska 123, Zagreb"
+
 
 Note: The EU sanctions list is automatically imported and updated via API connection to the official EU database.
 
 Data Sources
+
 The application uses the official EU Consolidated Financial Sanctions List which is automatically updated when changes occur.
 
