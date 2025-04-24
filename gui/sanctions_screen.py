@@ -97,7 +97,7 @@ class SanctionsScreen:
     
     def _open_link(self, event):
       
-        webbrowser.open("https://mvep.gov.hr/vanjska-politika/mjere-ogranicavanja/eu-i-un-konsolidirani-popisi-mjera-ogranicavanja/272447",new = 1)
+        webbrowser.open("https://mvep.gov.hr/vanjska-politika/mjere-ogranicavanja/eu-i-un-konsolidirani-popisi-mjera-ogranicavanja/272447")
     
     def _copy_name_surname(self, event):
    
@@ -105,13 +105,12 @@ class SanctionsScreen:
         if item_id: 
             row_values = self.table.item(item_id, "values")
             if len(row_values) >= 2:
-                
                 name_surname = f"{row_values[0]}"
                 self.root.clipboard_clear()
                 self.root.clipboard_append(name_surname)
-                
                 self.update_status(f"Copied to clipboard: {name_surname}")
-                self._open_link(event)
+                # Add delay before opening link
+                self.root.after(500, self._open_link, None)  # 500ms delay
     
     def add_person_object(self, person):
        

@@ -1,5 +1,6 @@
 import tkinter as tk
-
+import os
+os.environ['TK_SILENCE_DEPRECATION'] = '1'
 from di_container import DIContainer
 from interfaces import (
     IDownloadService, IProcessingService, IUIManager,
@@ -17,20 +18,16 @@ from config import AppConfig
 class SanctionsApp:
     def __init__(self):
         
-        # Main window
         self.root = tk.Tk()
         self.root.title(AppConfig.WINDOW_TITLE)
         self.root.geometry(AppConfig.WINDOW_SIZE)
         
-        # Set up dependency injection container
         self.container = self._configure_dependencies()
         
-        # Resolve dependencies
         self.download_service = self.container.resolve(IDownloadService)
         self.processing_service = self.container.resolve(IProcessingService)
         self.ui_manager = self.container.resolve(IUIManager)
         
-        # Application controller - with dependencies
         self.controller = AppController(
             ui_manager=self.ui_manager,
             download_service=self.download_service,
@@ -42,19 +39,15 @@ class SanctionsApp:
     def _configure_dependencies(self):
       
         container = DIContainer()
-        
-        # Register the root window as an instance
+    
         container.register_instance(tk.Tk, self.root)
         
-        # Register repositories
         container.register(IFileRepository, FileRepository)
         container.register(ISanctionsRepository, SanctionsRepository)
         
-        # Register services with dependencies
         container.register(IDownloadService, DownloadService)
         container.register(IProcessingService, ProcessingService)
         
-        # Register UI manager
         container.register(IUIManager, UIManager)
         
         return container
