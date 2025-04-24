@@ -1,6 +1,9 @@
 EU Sanctions Name Matcher
+
 A tool for financial compliance teams to compare client names against the EU database of sanctioned individuals and entities.
+
 Overview
+
 This application helps compliance teams identify potential matches between client names and entities on EU sanctions lists, 
 even when names have spelling variations, transliterations, or different formats. By using advanced name matching techniques, 
 the tool reduces the risk of missing sanctioned entities due to name variations.
