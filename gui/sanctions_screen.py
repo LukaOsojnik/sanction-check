@@ -19,7 +19,9 @@ class SanctionsScreen:
         self.on_back_callback = on_back_callback
         
         self.frame = ttk.Frame(root)
-        
+
+        self.person_objects = {}  
+
         self._setup_ui()
     
     def _setup_ui(self):
@@ -94,7 +96,60 @@ class SanctionsScreen:
         self.progress_bar.pack(side="bottom", fill="x")
         
         self.table.tag_configure("sanction", background="#ffcccc")
+
+        self.table.bind("<<TreeviewSelect>>", self._on_table_select)
+
+        # Gumb za proširivanje
+        self.expand_button = ttk.Button(
+            self.table_frame,
+            text="Proširi",
+            command=self._show_matching_names,
+            state="disabled"  # inicijalno isključeno
+        )
+        self.expand_button.pack(side="top", anchor="w", pady=(5, 0))
+
+        # Okvir za dodatnu tablicu
+        self.details_frame = ttk.LabelFrame(self.frame, text="Podudarajuća imena")
+
+        # Dodatna tablica
+        self.details_table = ttk.Treeview(self.details_frame, columns=("matching_name"), show="headings")
+        self.details_table.heading("matching_name", text="Ime na listi sankcija")
+        self.details_table.column("matching_name", width=300)
+
+        # Scrollbar za dodatnu tablicu
+        self.details_scrollbar = ttk.Scrollbar(self.details_frame, orient=tk.VERTICAL, command=self.details_table.yview)
+        self.details_table.configure(yscroll=self.details_scrollbar.set)
+        self.details_scrollbar.pack(side="right", fill="y")
+        self.details_table.pack(fill="both", expand=True)
+
+    def _on_table_select(self, event):
+
+        selected_items = self.table.selection()
+        self.expand_button.config(state="normal" if selected_items else "disabled")
+
+    def _show_matching_names(self):
     
+        for item in self.details_table.get_children():
+            self.details_table.delete(item)
+        
+        selected_items = self.table.selection()
+        if not selected_items:
+            return
+        
+      
+        selected_id = selected_items[0]
+        person_obj = self.person_objects.get(selected_id)
+        
+        if person_obj and hasattr(person_obj, "matching_names") and person_obj.matching_names:
+          
+            for name in person_obj.matching_names:
+                self.details_table.insert("", "end", values=(name,))
+        
+            self.details_frame.pack(padx=10, pady=(5, 10), fill="both", expand=True)
+        else:
+           
+            self.details_frame.pack_forget()    
+
     def _open_link(self, event):
       
         webbrowser.open("https://mvep.gov.hr/vanjska-politika/mjere-ogranicavanja/eu-i-un-konsolidirani-popisi-mjera-ogranicavanja/272447")
@@ -109,18 +164,24 @@ class SanctionsScreen:
                 self.root.clipboard_clear()
                 self.root.clipboard_append(name_surname)
                 self.update_status(f"Copied to clipboard: {name_surname}")
-                # Add delay before opening link
-                self.root.after(500, self._open_link, None)  # 500ms delay
+         
+                self.root.after(500, self._open_link, None)
     
     def add_person_object(self, person):
-       
+        """
+        Add a person to the results table
+        
+        Parameters:
+        person - Person object to add
+        """
         table_id = self.table.insert("", "end", values=(
             person.name,
             person.oib,
             person.address
         ))
-    
+
         self.table.item(table_id, tags=("sanction",))
+        self.person_objects[table_id] = person 
         return table_id
     
     def update_progress(self, current, total):
@@ -142,9 +203,12 @@ class SanctionsScreen:
         self.root.update_idletasks()
     
     def clear_table(self):
-      
+        """Clear all entries from the results table"""
         for item in self.table.get_children():
             self.table.delete(item)
+        self.person_objects.clear() 
+     
+        self.details_frame.pack_forget()
     
     def show(self):
        
@@ -153,5 +217,6 @@ class SanctionsScreen:
         self.frame.pack(fill="both", expand=True)
     
     def hide(self):
-       
+        """Hide this screen"""
+        self.details_frame.pack_forget()  
         self.frame.pack_forget()

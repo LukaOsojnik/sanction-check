@@ -12,15 +12,7 @@ class FileRepository(IFileRepository):
     """Repository for file operations"""
     
     def load_people_from_file(self, file_path: str) -> Tuple[Optional[List[Person]], str]:
-        """
-        Load people data from CSV or Excel file.
-        
-        Parameters:
-        file_path - Path to the CSV or Excel file
-        
-        Returns:
-        Tuple of (list of Person objects or None, message)
-        """
+   
         try:
             file_ext = os.path.splitext(file_path)[1].lower()
             

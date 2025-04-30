@@ -74,6 +74,15 @@ class ProcessingService(IProcessingService):
                 if not filtered_names.empty:
                     person.count += 1
                     
+                    matching_names_lists = filtered_names['NameAlias_WholeName'].tolist()
+                    # Poravnamo listu ako sadrži liste
+                    person.matching_names = []
+                    for name_list in matching_names_lists:
+                        if isinstance(name_list, list):
+                            person.matching_names.extend(name_list)
+                        else:
+                            person.matching_names.append(name_list)
+                    
                 if person.count > 0:
                     if on_match_found:
                         on_match_found(person)

@@ -79,66 +79,38 @@ class SanctionsRepository(ISanctionsRepository):
     
     
     def find_person_by_name(self, person_names_df: Any, search_name: str) -> Any:
-        
+
         def normalize(text: str) -> str:
+            
             text = unicodedata.normalize('NFKD', text)
             text = text.encode('ascii', 'ignore').decode('utf-8')
             return text.lower().replace('-', ' ').strip()
         
-        search_tokens = normalize(search_name).split()
-        
+        search_tokens = set(normalize(search_name).split())
+
         def match_score(name_list):
-            if not name_list:
-                return 0
-                
             max_score = 0
             for name in name_list:
-                name_tokens = normalize(name).split()
-                
-                token_matched = [False] * len(search_tokens)
-                match_scores = [0] * len(search_tokens)
-                
-                for i, st in enumerate(search_tokens):
-                    for nt in name_tokens:
-                        # full match
-                        if st == nt:
-                            token_matched[i] = True
-                            match_scores[i] = 1.0
-                            break
-                            
-                        min_chars = min(len(st), len(nt))
-                        if min_chars >= 3:  # samo ako je 3 ili više znakova
+                name_tokens = set(normalize(name).split())
+                direct_matches = len(search_tokens & name_tokens)
 
-                            # provjera jeli search token substring name tokena
-                            if st in nt and len(st) >= 0.8 * len(nt):
-                                token_matched[i] = True
-                                match_scores[i] = 0.9
-                                break
-                                
-                            # provjera name tokena u search tokenu
-                            if nt in st and len(nt) >= 0.8 * len(st):
-                                token_matched[i] = True
-                                match_scores[i] = 0.9
-                                break
-                            
-                            prefix_len = 0
-                            for c in range(min(len(st), len(nt))):
-                                if st[c] == nt[c]:
-                                    prefix_len += 1
-                                else:
-                                    break
-                                    
-                            if prefix_len >= 3 and prefix_len >= 0.8 * min(len(st), len(nt)):
-                                token_matched[i] = True
-                                match_scores[i] = 0.8
-                                break
-                
-                if all(token_matched):
-                    score = sum(match_scores)
-                    max_score = max(max_score, score)
-                    
+                partial_matches = 0
+                for st in search_tokens:
+                    for nt in name_tokens:
+                        if st in nt and st != nt:
+                            partial_matches += 1
+                            break
+
+                total_matches = direct_matches + partial_matches
+
+                if total_matches < 2 and len(search_tokens) >= 2:
+                    continue
+
+                score = direct_matches + 0.5 * partial_matches
+                max_score = max(max_score, score)
+
             return max_score
-        
+
         person_names_df['match_score'] = person_names_df['NameAlias_WholeName'].apply(match_score)
         result = person_names_df[person_names_df['match_score'] > 0].sort_values(by='match_score', ascending=False)
         return result.drop(columns=['match_score'])

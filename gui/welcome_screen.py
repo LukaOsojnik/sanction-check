@@ -29,8 +29,7 @@ class WelcomeScreen(IWelcomeScreen):
             font=("Arial", 16, "bold")
         )
         title_label.pack(pady=(40, 20))
-        
-        # File selection area
+
         self.file_frame = ttk.LabelFrame(
             self.frame,
             text="Učitaj listu klijenata",
@@ -41,7 +40,6 @@ class WelcomeScreen(IWelcomeScreen):
     
         self.file_frame.pack_propagate(False)
         
-        # Selection button
         self.file_button = ttk.Button(
             self.file_frame,
             text="Odaberi CSV ili Excel datoteku",
@@ -66,21 +64,19 @@ class WelcomeScreen(IWelcomeScreen):
         )
         self.file_status_label.pack(pady=5)
         
-        # Status label za prikaz statusa preuzimanja
         self.status_label = ttk.Label(
             self.frame,
             text="Inicijalizacija...",
             font=("Arial", 10)
         )
         self.status_label.pack(pady=5)
-        
-        # Button to start the process
+     
         self.start_button = ttk.Button(
             self.frame,
             text="Pokreni provjeru",
             command=self.on_start_callback,
             width=20,
-            state="disabled" # inicijalno iskljuceno
+            state="disabled" 
         )
         self.start_button.pack(pady=15)
         
