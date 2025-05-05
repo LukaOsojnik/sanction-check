@@ -24,7 +24,7 @@ class FileRepository(IFileRepository):
                 return None, f"Nepodržani format datoteke: {file_ext}. Koristite CSV ili Excel."
             
             # checks for column names
-            required_columns = ['Ime', 'OIB', 'ADRESA']
+            required_columns = ['IME', 'OIB', 'ADRESA']
             missing_columns = [col for col in required_columns if col not in df.columns]
             
             if missing_columns:
@@ -36,7 +36,7 @@ class FileRepository(IFileRepository):
             
             for _, row in df.iterrows():
                 try:
-                    person = Person(row['Ime'], row['OIB'], row['ADRESA'])
+                    person = Person(row['IME'], row['OIB'], row['ADRESA'])
                     people.append(person)
                 except ValueError as e:
                     skipped_records += 1

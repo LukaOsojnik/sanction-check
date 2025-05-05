@@ -11,7 +11,7 @@ class AppConfig:
     SANCTIONS_API_URL = "https://webgate.ec.europa.eu/fsd/fsf/public/files/csvFullSanctionsList_1_1/content?token=dG9rZW4tMjAxNw"
     
     # File settings
-    REQUIRED_COLUMNS = ['Ime', 'Prezime', 'OIB', 'ADRESA']
+    REQUIRED_COLUMNS = ['IME','OIB', 'ADRESA']
     
     # UI messages
     MSG_DOWNLOADING = "Preuzimanje podataka o sankcijama..."
