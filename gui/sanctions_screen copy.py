@@ -5,7 +5,6 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import font as tkfont
 import webbrowser
-from services.pdf_exporter import PDFExporter
 
 class SanctionsScreen:
     def __init__(self, root, on_back_callback):
@@ -18,12 +17,11 @@ class SanctionsScreen:
         """
         self.root = root
         self.on_back_callback = on_back_callback
+        
         self.frame = ttk.Frame(root)
+
         self.person_objects = {}  
-        
-        # Initialize the PDF exporter
-        self.pdf_exporter = PDFExporter(root)
-        
+
         self._setup_ui()
     
     def _setup_ui(self):
@@ -40,13 +38,6 @@ class SanctionsScreen:
         )
         self.back_button.pack(side="left")
 
-        self.export_pdf_button = ttk.Button(
-            self.nav_frame,
-            text="📄 Izvoz PDF",
-            command=self._export_to_pdf
-        )
-        self.export_pdf_button.pack(side="left", padx=10)
-        
         # MVEP link 
         self.link_label = ttk.Label(
             self.nav_frame,
@@ -65,19 +56,17 @@ class SanctionsScreen:
         self.table_frame = ttk.Frame(self.frame)
         self.table_frame.pack(padx=10, pady=(10, 10), fill="both", expand=True)
         
-        self.columns = ("ime", "prezime", "oib", "adresa")
+        self.columns = ("ime i prezime", "oib", "adresa")
         self.table = ttk.Treeview(self.table_frame, columns=self.columns, show="headings")
         
-        self.table.heading("ime", text="Ime")
-        self.table.heading("prezime", text="Prezime")
+        self.table.heading("ime i prezime", text="Ime i prezime")
         self.table.heading("oib", text="OIB")
         self.table.heading("adresa", text="Adresa")
         
-        self.table.column("ime", width=100)
-        self.table.column("prezime", width=150)
+        self.table.column("ime i prezime", width=150)
         self.table.column("oib", width=150)
         self.table.column("adresa", width=100)
-                
+        
         self.scrollbar = ttk.Scrollbar(self.table_frame, orient=tk.VERTICAL, command=self.table.yview)
         self.table.configure(yscroll=self.scrollbar.set)
         self.scrollbar.pack(side="right", fill="y")
@@ -171,20 +160,12 @@ class SanctionsScreen:
         if item_id: 
             row_values = self.table.item(item_id, "values")
             if len(row_values) >= 2:
-                name_surname = f"{row_values[0]} {row_values[1]}"
+                name_surname = f"{row_values[0]}"
                 self.root.clipboard_clear()
                 self.root.clipboard_append(name_surname)
                 self.update_status(f"Copied to clipboard: {name_surname}")
          
                 self.root.after(500, self._open_link, None)
-    
-    def _export_to_pdf(self):
-        """Export the sanctions check results to a PDF file"""
-        # Use the new PDF exporter
-        self.pdf_exporter.export_to_pdf(
-            self.person_objects,
-            status_update_callback=self.update_status
-        )
     
     def add_person_object(self, person):
         """
@@ -195,7 +176,6 @@ class SanctionsScreen:
         """
         table_id = self.table.insert("", "end", values=(
             person.name,
-            person.surname,
             person.oib,
             person.address
         ))
