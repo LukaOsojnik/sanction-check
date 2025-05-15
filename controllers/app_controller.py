@@ -43,7 +43,7 @@ class AppController:
         """
         self.ui_manager.update_welcome_status(f"Loading file: {file_path}...")
         
-        # Load file in background
+        # load file in background
         def on_file_loaded(people_data, message):
             """Callback when file is loaded"""
             self.people_data = people_data
@@ -54,7 +54,7 @@ class AppController:
             else:
                 self.ui_manager.update_file_status(message, is_success=False)
         
-        # Start loading file
+        # start loading file
         self.processing_service.load_file_async(file_path, on_file_loaded)
     
     def start_download_in_background(self):
@@ -110,7 +110,7 @@ class AppController:
                 on_complete=lambda filename: self._continue_processing(filename)
             )
         else:
-            # Already have sanctions data, continue processing
+            # already have sanctions data, continue processing
             self._continue_processing(self.sanctions_filename)
     
     def _continue_processing(self, sanctions_filename):
@@ -127,7 +127,7 @@ class AppController:
         self.sanctions_filename = sanctions_filename
         self.ui_manager.update_sanctions_status(AppConfig.MSG_PROCESSING)
  
-        # Define callbacks for processing
+        # define callbacks for processing
         def on_progress(current, total):
             """Update progress bar"""
             self.ui_manager.update_sanctions_progress(current, total)

@@ -105,7 +105,7 @@ class PDFExporter:
         except:
             base_font = 'Helvetica'
         
-        # Create PDF document
+        # create PDF document
         doc = SimpleDocTemplate(
             file_path, pagesize=A4, 
             rightMargin=2*cm, leftMargin=2*cm, 

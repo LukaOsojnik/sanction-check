@@ -110,7 +110,7 @@ class SanctionsScreen:
 
         self.table.bind("<<TreeviewSelect>>", self._on_table_select)
 
-        # Gumb za proširivanje
+        # expantion button
         self.expand_button = ttk.Button(
             self.table_frame,
             text="Proširi",
@@ -119,15 +119,14 @@ class SanctionsScreen:
         )
         self.expand_button.pack(side="top", anchor="w", pady=(5, 0))
 
-        # Okvir za dodatnu tablicu
+        # frame for 2nd table
         self.details_frame = ttk.LabelFrame(self.frame, text="Podudarajuća imena")
 
-        # Dodatna tablica
         self.details_table = ttk.Treeview(self.details_frame, columns=("matching_name"), show="headings")
         self.details_table.heading("matching_name", text="Ime na listi sankcija")
         self.details_table.column("matching_name", width=300)
 
-        # Scrollbar za dodatnu tablicu
+        # scrollbar for 2nd table
         self.details_scrollbar = ttk.Scrollbar(self.details_frame, orient=tk.VERTICAL, command=self.details_table.yview)
         self.details_table.configure(yscroll=self.details_scrollbar.set)
         self.details_scrollbar.pack(side="right", fill="y")

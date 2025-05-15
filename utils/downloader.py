@@ -3,10 +3,10 @@ Functions for downloading and caching sanctions data.
 """
 import requests
 import tempfile
-
+from config import AppConfig
 def download_with_caching():
 
-    csv_url = "https://webgate.ec.europa.eu/fsd/fsf/public/files/csvFullSanctionsList_1_1/content?token=dG9rZW4tMjAxNw"
+    csv_url = AppConfig.SANCTIONS_API_URL
   
     try:
         response = requests.get(csv_url)
