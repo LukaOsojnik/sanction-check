@@ -1,47 +1,52 @@
-EU Sanctions Name Matcher
+A simple Python application that can be run from a virtual environment or packaged into a standalone .exe using PyInstaller.
+📁 Repository Contents
 
-A tool for financial compliance teams to compare client names against the EU database of sanctioned individuals and entities.
+    main.py – Entry point of the application
 
-Overview
+    requirements.txt – List of required Python libraries
 
-This application helps compliance teams identify potential matches between client names and entities on EU sanctions lists, 
-even when names have spelling variations, transliterations, or different formats. By using advanced name matching techniques, 
-the tool reduces the risk of missing sanctioned entities due to name variations.
+    myapp.spec – PyInstaller configuration file
 
-Key Features
+🔧 Setting Up the Virtual Environment
 
-Name normalization: Converts names to standardized formats to handle capitalization, accents, and special characters
+1. Clone the repository
+git clone https://github.com/your-username/myapp.git
+cd myapp
 
-Tokenization: Breaks names into meaningful components for more flexible partial matching
+2. Create a virtual environment
 
-Transliteration awareness: Identifies matches across different spelling systems (e.g., 'Petrović', 'Petrovitch', 'Petrovitj')
+For Windows:
 
-Bulk processing: Upload and scan multiple client records simultaneously
+python -m venv venv
+venv\Scripts\activate
 
-Technical Implementation
+For Linux/macOS:
 
-The application employs several techniques to improve matching accuracy:
+python3 -m venv venv
+source venv/bin/activate
 
-Unicode normalization
+3. Install dependencies
 
-Character substitution rules for cross-alphabet matching
+pip install -r requirements.txt
 
-Token-based partial matching
+🚀 Running the Application
 
-CSV Format for Client Data
+With the virtual environment activated:
 
-When using batch processing, your client CSV file should include the following columns:
+python main.py
 
-Ime,OIB,ADRESA
+.EXE FILE
 
-Ivan Horvat,12312345670,"Osjecka ulica 2, Zagreb"
+🛠️ Building an .exe File
 
-Ana Zaković,12345678901,"Vukovarska 123, Zagreb"
+If you'd like to create a standalone Windows executable:
+1. Make sure the virtual environment is activated
+
+venv\Scripts\activate   # On Windows
+# or
+source venv/bin/activate  # On Linux/macOS
 
 
-Note: The EU sanctions list is automatically imported and updated via API connection to the official EU database.
+2. Run PyInstaller with the spec file
 
-Data Sources
-
-The application uses the official EU Consolidated Financial Sanctions List which is automatically updated when changes occur.
-
+pyinstaller myapp.spec
