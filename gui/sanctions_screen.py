@@ -180,7 +180,7 @@ class SanctionsScreen:
     
     def _export_to_pdf(self):
         """Export the sanctions check results to a PDF file"""
-        # Use the new PDF exporter
+        # Pdf exporter
         self.pdf_exporter.export_to_pdf(
             self.person_objects,
             status_update_callback=self.update_status

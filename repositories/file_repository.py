@@ -49,7 +49,6 @@ class FileRepository(IFileRepository):
                     oib = str(row['OIB']).strip()
                     address = str(row['ADRESA']).strip()
 
-                    # Ispravni nazivi argumenta
                     person = Person(name=name, surname=surname, oib=oib, address=address)
                     people.append(person)
                 except Exception as e:

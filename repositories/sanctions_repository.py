@@ -52,49 +52,39 @@ class SanctionsRepository(ISanctionsRepository):
         DataFrame with processed name data
         """
         try:
-            # Reading the file
+            # read the file
             df = pd.read_csv(filename, sep=";", low_memory=False)
 
-            # Filtering to get only persons
+            # Filtering by PEOPLE
             persons_df = df[df['Entity_SubjectType'] == 'P']
-            
-            # Select only the columns we need
+
             name_columns = ['Entity_LogicalId', 'NameAlias_LastName', 'NameAlias_FirstName', 
                             'NameAlias_MiddleName', 'NameAlias_WholeName']
             
-            # Ensure we only select columns that actually exist in the DataFrame
             existing_columns = [col for col in name_columns if col in persons_df.columns]
             
-            # If WholeName is not in the existing columns, we can't proceed
+            # Check for WhoName column
             if 'NameAlias_WholeName' not in existing_columns:
                 print("Error: NameAlias_WholeName column not found in the data")
                 return None
                 
-            # Select the data with existing columns
             selected_df = persons_df[existing_columns]
             
             # Filter out rows where WholeName is not valid
-            selected_df = selected_df[
-                selected_df['NameAlias_WholeName'].notna() & 
+            selected_df = selected_df[ 
                 selected_df['NameAlias_WholeName'].apply(is_latin)
             ]
-            
-            # Group by Entity_LogicalId to handle multiple alias names for the same entity
-            # Instead of applying a function to create lists, we'll keep all rows
-            # This preserves the individual columns for FirstName, LastName, etc.
-            
-            # First, let's remove duplicates to avoid unnecessary processing
+            # Remove duplicates
             selected_df = selected_df.drop_duplicates()
             
             # Check if there are any results
             if selected_df.empty:
-                print("No valid names found in the sanctions data")
+                print("No valid names found in the data set")
                 return None
                 
             # Print column names for debugging
             print(f"Columns in processed data: {selected_df.columns.tolist()}")
-            
-            # Return the processed DataFrame
+
             return selected_df
             
         except Exception as e:
@@ -123,6 +113,7 @@ class SanctionsRepository(ISanctionsRepository):
         has_middle_name = 'NameAlias_MiddleName' in person_names_df.columns
         has_last_name = 'NameAlias_LastName' in person_names_df.columns
         
+        # faster than rapid fuzz
         def check_prefix_match(short_name, long_name):
             """Check if short_name is a prefix of long_name"""
             if not short_name or not long_name:
@@ -132,49 +123,48 @@ class SanctionsRepository(ISanctionsRepository):
             if len(short_name) < 3:
                 return False
                 
-            # Check if short_name is at the beginning of long_name
+            # is short name prefix of long name = (Ana - Analita / Dmitrij - Dmitrijevich)
             if long_name.startswith(short_name):
-                # Determine if the prefix is significant (at least 60% of chars or 3+ chars)
-                if len(short_name) >= 3 and len(short_name) >= 0.6 * len(long_name):
+                # if name is prefix of the longer one - must have at least 3 letters and be 60% 
+                if len(short_name) >= 3:
                     return True
                     
             return False
         
         def calculate_match_score(row):
-            # Initialize scores
             name_score = 0
             surname_score = 0
             
-            # SURNAME MATCHING
+            # Simple matching - SURNAME 
             if normalized_surname and has_last_name and not pd.isna(row.get('NameAlias_LastName', pd.NA)):
                 last_name = normalize(row['NameAlias_LastName'])
                 if last_name:
-                    # Use token_set_ratio for handling word order differences
+                    # token_set_ratio with fuzz
                     surname_score = fuzz.token_set_ratio(normalized_surname, last_name) / 100.0
                     
-                    # Set to 0 if score is below threshold to avoid false positives
+                    # set score to 0 if bellow 0.80
                     if surname_score < 0.80:  # 80% threshold
                         surname_score = 0
             
-            # NAME MATCHING - Check for prefix match first (most efficient)
+            # Simple matching - NAME MATCHING 
             if name_tokens and has_first_name and not pd.isna(row.get('NameAlias_FirstName', pd.NA)):
                 first_name = normalize(row['NameAlias_FirstName'])
                 
-                # Check if the person's name is a prefix of the alias first name
+                # is persons name prefix of alias
                 if any(check_prefix_match(token, first_name) for token in name_tokens):
-                    name_score = 0.85  # Give a good score, but not perfect
-                    # Skip the more expensive RapidFuzz check if we already have a match
+                    name_score = 0.85 # good match
+                    # skip rapid fuzz for more efficiency
                     return surname_score * 0.6 + name_score * 0.4 if surname_score > 0 else 0
                 
-                # Check if the alias first name is a prefix of the person's name
+                # is alias's name prefix of persons
                 elif any(check_prefix_match(first_name, token) for token in name_tokens):
                     name_score = 0.85
-                    # Skip the more expensive RapidFuzz check if we already have a match
+                    # skip rapid fuzz for more efficiency
                     return surname_score * 0.6 + name_score * 0.4 if surname_score > 0 else 0
             
-            # If we don't have a prefix match, proceed with RapidFuzz
+            # if simple method not sufficient, use rapid fuzz library
             if normalized_name:
-                # Collect first name and middle name for comparison
+                # save first and middle name 
                 alias_full_name = ""
                 if has_first_name and not pd.isna(row.get('NameAlias_FirstName', pd.NA)):
                     alias_full_name += normalize(row['NameAlias_FirstName']) + " "
@@ -184,23 +174,22 @@ class SanctionsRepository(ISanctionsRepository):
                 alias_full_name = alias_full_name.strip()
                 
                 if alias_full_name:
-                    # Use token_set_ratio for name matching
+                    # token_set_ratio with fuzz
                     name_score = fuzz.token_set_ratio(normalized_name, alias_full_name) / 100.0
                     
-                    # Set to 0 if score is below threshold
+                    # set score to 0 if bellow 0.80
                     if name_score < 0.75:  # 75% threshold
                         name_score = 0
             
-            # Only consider it a match if both name and surname match
             if surname_score > 0 and name_score > 0:
                 return surname_score * 0.6 + name_score * 0.4
                 
             return 0
         
-        # Apply the scoring function
+        # apply scoring function
         person_names_df['match_score'] = person_names_df.apply(calculate_match_score, axis=1)
         
-        # Filter and sort results
+        # filter and sort
         result = person_names_df[person_names_df['match_score'] > 0].sort_values(
             by='match_score', ascending=False
         )

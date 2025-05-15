@@ -53,7 +53,7 @@ class PDFExporter:
         )
         
         if not file_path:
-            return False  # User cancelled
+            return False
         
         # Generate PDF
         try:
@@ -89,17 +89,13 @@ class PDFExporter:
         file_path - Path where to save the PDF file
         people_objects - Dictionary of person objects to include in the report
         """
-        # Register a font that supports Croatian characters
+        # Finding font that supports Croatian characters
         try:
             # Simple approach - check common font locations based on platform
             if sys.platform == 'win32':
                 font_path = "C:/Windows/Fonts/Arial.ttf"
             else:  # Linux
-                font_candidates = [
-                    "/usr/share/fonts/liberation-sans/LiberationSans-Regular.ttf",
-                    "/usr/share/fonts/dejavu/DejaVuSans.ttf"
-                ]
-                font_path = next((p for p in font_candidates if os.path.exists(p)), None)
+                font_path = "/usr/share/fonts/liberation-sans/LiberationSans-Regular.ttf"
                 
             if font_path and os.path.exists(font_path):
                 pdfmetrics.registerFont(TTFont('CustomFont', font_path))
@@ -120,7 +116,7 @@ class PDFExporter:
         story = []
         styles = getSampleStyleSheet()
         
-        # Define minimal set of styles
+        # Define styles
         title_style = ParagraphStyle(
             'Title', parent=styles['Heading1'],
             fontName=base_font, fontSize=18, alignment=1
