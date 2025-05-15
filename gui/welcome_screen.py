@@ -5,27 +5,21 @@ import tkinter as tk
 from tkinter import ttk, filedialog
 import os
 from typing import Callable
-
-from interfaces import IWelcomeScreen
 from config import AppConfig
 
-class WelcomeScreen(IWelcomeScreen):
+class WelcomeScreen: 
     def __init__(self, root: tk.Tk, on_start_callback: Callable, on_file_drop_callback: Callable):
-   
         self.root = root
         self.on_start_callback = on_start_callback
         self.on_file_drop_callback = on_file_drop_callback
-    
         self.frame = ttk.Frame(root)
-        
-        # UI 
+        # UI
         self._setup_ui()
-    
+        
     def _setup_ui(self):
-     
         title_label = ttk.Label(
-            self.frame, 
-            text="Dobrodošli u aplikaciju za provjeru sankcioniranih osoba", 
+            self.frame,
+            text="Dobrodošli u aplikaciju za provjeru sankcioniranih osoba",
             font=("Arial", 16, "bold")
         )
         title_label.pack(pady=(40, 20))
@@ -37,7 +31,6 @@ class WelcomeScreen(IWelcomeScreen):
             height=160
         )
         self.file_frame.pack(pady=20, padx=50, fill="x")
-    
         self.file_frame.pack_propagate(False)
         
         self.file_button = ttk.Button(
@@ -70,13 +63,13 @@ class WelcomeScreen(IWelcomeScreen):
             font=("Arial", 10)
         )
         self.status_label.pack(pady=5)
-     
+        
         self.start_button = ttk.Button(
             self.frame,
             text="Pokreni provjeru",
             command=self.on_start_callback,
             width=20,
-            state="disabled" 
+            state="disabled"
         )
         self.start_button.pack(pady=15)
         
@@ -88,7 +81,6 @@ class WelcomeScreen(IWelcomeScreen):
         version_label.pack(side="bottom", pady=10)
     
     def _open_file_dialog(self):
-     
         file_path = filedialog.askopenfilename(
             title="Odaberi datoteku s klijentima",
             filetypes=[
@@ -99,33 +91,26 @@ class WelcomeScreen(IWelcomeScreen):
         )
         
         if file_path:
-        
             file_name = os.path.basename(file_path)
             self.file_path_label.config(
                 text=f"Odabrana datoteka: {file_name}",
                 foreground="blue"
             )
-            
             self.on_file_drop_callback(file_path)
     
     def update_file_status(self, message: str, is_success: bool = True):
-    
         self.file_status_label.config(
             text=message,
             foreground="green" if is_success else "red"
         )
-        
         self.start_button.config(state="normal" if is_success else "disabled")
     
     def update_status(self, message: str):
-      
         self.status_label.config(text=message)
-        self.root.update_idletasks()  
+        self.root.update_idletasks()
     
     def show(self):
-   
         self.frame.pack(fill="both", expand=True)
     
     def hide(self):
-
         self.frame.pack_forget()

@@ -2,12 +2,11 @@
 Service for downloading and managing sanctions data.
 """
 import threading
-from interfaces import IDownloadService, ISanctionsRepository
 
-class DownloadService(IDownloadService):
-    def __init__(self, sanctions_repository: ISanctionsRepository):
+class DownloadService:
+    def __init__(self, sanctions_repository):
         """
-        Initialize with dependencies injected.
+        Initialize with dependencies.
         
         Parameters:
         sanctions_repository - Repository for sanctions data operations
@@ -17,10 +16,13 @@ class DownloadService(IDownloadService):
     
     def download(self, on_complete=None):
         """
-        Download sanctions data synchronously
+        Download sanctions data synchronously.
         
         Parameters:
         on_complete - Callback function to call with the filename when complete
+        
+        Returns:
+        filename - Path to the downloaded file
         """
         filename = self.sanctions_repository.download_sanctions_data()
         
@@ -34,10 +36,13 @@ class DownloadService(IDownloadService):
     
     def download_async(self, on_complete=None):
         """
-        Download sanctions data asynchronously
+        Download sanctions data asynchronously.
         
         Parameters:
         on_complete - Callback function to call with the filename when complete
+        
+        Returns:
+        thread - The thread that is running the download
         """
         def download_thread():
             filename = self.download()

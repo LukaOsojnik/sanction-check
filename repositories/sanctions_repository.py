@@ -1,25 +1,25 @@
 """
-Repository implementations for data access.
+Repository for sanctions data operations.
 """
 import pandas as pd
 import requests
+from typing import Any
 import tempfile
 import unicodedata
-
-from typing import Optional, Any
-from interfaces import ISanctionsRepository
-from utils import is_latin
 from rapidfuzz import fuzz
+from utils import is_latin
+from config import AppConfig
 
-class SanctionsRepository(ISanctionsRepository):
+class SanctionsRepository:
     """Repository for sanctions data operations"""
     
     def __init__(self):
-        self.sanctions_url = "https://webgate.ec.europa.eu/fsd/fsf/public/files/csvFullSanctionsList_1_1/content?token=dG9rZW4tMjAxNw"
+        """Initialize the repository"""
+        self.sanctions_url = AppConfig.SANCTIONS_API_URL
     
-    def download_sanctions_data(self) -> Optional[str]:
+    def download_sanctions_data(self):
         """
-        Download sanctions data from EU database
+        Download sanctions data from EU database.
         
         Returns:
         str - Path to the downloaded file, or None if download failed
@@ -55,7 +55,7 @@ class SanctionsRepository(ISanctionsRepository):
             # read the file
             df = pd.read_csv(filename, sep=";", low_memory=False)
 
-            # Filtering by PEOPLE
+            # filtering by PEOPLE
             persons_df = df[df['Entity_SubjectType'] == 'P']
 
             name_columns = ['Entity_LogicalId', 'NameAlias_LastName', 'NameAlias_FirstName', 
@@ -63,26 +63,26 @@ class SanctionsRepository(ISanctionsRepository):
             
             existing_columns = [col for col in name_columns if col in persons_df.columns]
             
-            # Check for WhoName column
+            # check for WholeName column
             if 'NameAlias_WholeName' not in existing_columns:
                 print("Error: NameAlias_WholeName column not found in the data")
                 return None
                 
             selected_df = persons_df[existing_columns]
             
-            # Filter out rows where WholeName is not valid
+            # filter out rows where WholeName is not valid
             selected_df = selected_df[ 
                 selected_df['NameAlias_WholeName'].apply(is_latin)
             ]
-            # Remove duplicates
+            # remove duplicates
             selected_df = selected_df.drop_duplicates()
             
-            # Check if there are any results
+            # check if there are any results
             if selected_df.empty:
                 print("No valid names found in the data set")
                 return None
                 
-            # Print column names for debugging
+            # print column names for debugging
             print(f"Columns in processed data: {selected_df.columns.tolist()}")
 
             return selected_df
@@ -101,14 +101,14 @@ class SanctionsRepository(ISanctionsRepository):
             text = text.encode('ascii', 'ignore').decode('utf-8')
             return text.lower().replace('-', ' ').strip()
         
-        # Normalize input
+        # normalize input
         normalized_name = normalize(person_name)
         normalized_surname = normalize(person_surname)
         
-        # Get name tokens (for prefix checking)
+        # get name tokens (for prefix checking)
         name_tokens = normalized_name.split() if normalized_name else []
         
-        # Check which columns are available
+        # check which columns are available
         has_first_name = 'NameAlias_FirstName' in person_names_df.columns
         has_middle_name = 'NameAlias_MiddleName' in person_names_df.columns
         has_last_name = 'NameAlias_LastName' in person_names_df.columns
@@ -178,7 +178,7 @@ class SanctionsRepository(ISanctionsRepository):
                     name_score = fuzz.token_set_ratio(normalized_name, alias_full_name) / 100.0
                     
                     # set score to 0 if bellow 0.80
-                    if name_score < 0.75:  # 75% threshold
+                    if name_score < 0.70:  # 70% threshold
                         name_score = 0
             
             if surname_score > 0 and name_score > 0:

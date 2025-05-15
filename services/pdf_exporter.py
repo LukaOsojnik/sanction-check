@@ -40,12 +40,12 @@ class PDFExporter:
         Returns:
         bool - True if export was successful, False otherwise
         """
-        # Check if there are any results to export
+        # check if results exist
         if not people_objects:
-            messagebox.showinfo("Izvoz PDF", "Nema rezultata za izvoz.")
+            messagebox.showinfo("Nema rezultata za PDF.")
             return False
         
-        # Ask user for save location
+        # save location
         file_path = filedialog.asksaveasfilename(
             defaultextension=".pdf",
             filetypes=[("PDF datoteke", "*.pdf"), ("Sve datoteke", "*.*")],
@@ -55,7 +55,7 @@ class PDFExporter:
         if not file_path:
             return False
         
-        # Generate PDF
+        # generate PDF
         try:
             if status_update_callback:
                 status_update_callback("Generiranje PDF izvještaja...")
@@ -65,12 +65,12 @@ class PDFExporter:
             if status_update_callback:
                 status_update_callback(f"PDF izvještaj spremljen: {file_path}")
             
-            # Ask if user wants to open the file
+            # ask if user wants to open the file
             if messagebox.askyesno("Izvoz PDF", "PDF izvještaj je uspješno generiran. Želite li ga otvoriti?"):
-                # Open the PDF file with the default viewer
+                # open pdf
                 if sys.platform == 'win32':
                     os.startfile(file_path)
-                else:  # Linux/Mac
+                else:  # za linux
                     subprocess.run(['xdg-open' if sys.platform.startswith('linux') else 'open', file_path])
             
             return True
@@ -89,12 +89,12 @@ class PDFExporter:
         file_path - Path where to save the PDF file
         people_objects - Dictionary of person objects to include in the report
         """
-        # Finding font that supports Croatian characters
+        # finding font that supports Croatian characters
         try:
-            # Simple approach - check common font locations based on platform
+            # windows
             if sys.platform == 'win32':
                 font_path = "C:/Windows/Fonts/Arial.ttf"
-            else:  # Linux
+            else:  # linux
                 font_path = "/usr/share/fonts/liberation-sans/LiberationSans-Regular.ttf"
                 
             if font_path and os.path.exists(font_path):
@@ -112,11 +112,11 @@ class PDFExporter:
             topMargin=2*cm, bottomMargin=2*cm
         )
         
-        # Initialize story and styles
+        # story and styles
         story = []
         styles = getSampleStyleSheet()
         
-        # Define styles
+        # define styles
         title_style = ParagraphStyle(
             'Title', parent=styles['Heading1'],
             fontName=base_font, fontSize=18, alignment=1
@@ -126,13 +126,13 @@ class PDFExporter:
             fontName=base_font, fontSize=10
         )
         
-        # Add title and date
+        # add title and date
         story.append(Paragraph("Izvještaj o provjeri sankcioniranih osoba", title_style))
         story.append(Spacer(1, 0.5*cm))
         story.append(Paragraph(f"Datum izvještaja: {datetime.now().strftime('%d.%m.%Y. %H:%M')}", normal_style))
         story.append(Spacer(1, 1*cm))
         
-        # Helper function for creating tables
+        # helper function
         def create_styled_table(data, col_widths, header=True):
             table = Table(data, colWidths=col_widths)
             styles_list = [
@@ -152,7 +152,7 @@ class PDFExporter:
             table.setStyle(TableStyle(styles_list))
             return table
         
-        # Create main table with person data
+        # main table
         main_data = [["Ime", "Prezime", "OIB", "Adresa", "Podudaranja"]]
         matched_persons = []
         
@@ -168,7 +168,7 @@ class PDFExporter:
         story.append(create_styled_table(main_data, [3*cm, 3*cm, 3*cm, 5*cm, 3*cm]))
         story.append(Spacer(1, 1*cm))
         
-        # Add matching details section if matches exist
+        # matching details
         if matched_persons:
             story.append(Paragraph("Detalji podudaranja", title_style))
             story.append(Spacer(1, 0.5*cm))
@@ -182,8 +182,7 @@ class PDFExporter:
                 
                 story.append(create_styled_table(match_data, [17*cm]))
                 story.append(Spacer(1, 0.5*cm))
-        
-        # Add footer
+        # footer
         story.append(Spacer(1, 0.5*cm))
         story.append(Paragraph(
             "Ovaj dokument je automatski generiran i ne predstavlja pravno mišljenje. "
@@ -191,5 +190,5 @@ class PDFExporter:
             ParagraphStyle('Footer', parent=styles['Italic'], fontName=base_font, fontSize=8)
         ))
         
-        # Build PDF
+        # build PDF
         doc.build(story)

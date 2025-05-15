@@ -1,17 +1,14 @@
 """
-Repository implementations for data access.
+Repository for loading people data from files.
 """
 import os
 import pandas as pd
-from typing import List, Optional, Tuple
-
-from interfaces import IFileRepository
 from models.person import Person
 
-def split_name_column(full_name: str) -> Tuple[str, str]:
+def split_name_column(full_name):
     """
-    Izvlači prezime i ime iz jedne kolone.
-    Posljednja riječ se tretira kao ime, sve ostalo kao prezime.
+    Extract surname and name from a single column.
+    The last word is treated as the name, everything else as the surname.
     """
     parts = str(full_name).strip().split()
     if len(parts) < 2:
@@ -19,10 +16,19 @@ def split_name_column(full_name: str) -> Tuple[str, str]:
     return " ".join(parts[:-1]), parts[-1]
 
 
-class FileRepository(IFileRepository):
-    """Repository za rad s datotekama"""
+class FileRepository:
+    """Repository for file operations"""
 
-    def load_people_from_file(self, file_path: str) -> Tuple[Optional[List[Person]], str]:
+    def load_people_from_file(self, file_path):
+        """
+        Load people from a CSV or Excel file.
+        
+        Parameters:
+        file_path - Path to the file
+        
+        Returns:
+        (people, message) - List of Person objects and status message
+        """
         try:
             file_ext = os.path.splitext(file_path)[1].lower()
 
@@ -31,13 +37,13 @@ class FileRepository(IFileRepository):
             elif file_ext in ['.xlsx', '.xls']:
                 df = pd.read_excel(file_path)
             else:
-                return None, f"Nepodržani format datoteke: {file_ext}. Koristite CSV ili Excel."
+                return None, f"Unsupported file format: {file_ext}. Use CSV or Excel."
 
             required_columns = ['IME', 'OIB', 'ADRESA']
             missing_columns = [col for col in required_columns if col not in df.columns]
 
             if missing_columns:
-                return None, f"Nedostaju stupci: {', '.join(missing_columns)}"
+                return None, f"Missing columns: {', '.join(missing_columns)}"
 
             people = []
             skipped_records = 0
@@ -53,14 +59,13 @@ class FileRepository(IFileRepository):
                     people.append(person)
                 except Exception as e:
                     skipped_records += 1
-                    print(f"Preskačem nevažeći zapis {row.to_dict()}. Greška: {e}")
+                    print(f"Skipping invalid record {row.to_dict()}. Error: {e}")
 
-            message = f"Učitano {len(people)} osoba."
+            message = f"Loaded {len(people)} people."
             if skipped_records > 0:
-                message += f" Preskočeno {skipped_records} nevažećih zapisa."
+                message += f" Skipped {skipped_records} invalid records."
 
             return people, message
 
         except Exception as e:
-            return None, f"Greška pri učitavanju datoteke: {str(e)}"
-
+            return None, f"Error loading file: {str(e)}"

@@ -1,17 +1,20 @@
 """
 UI Manager for handling screen transitions and updates.
 """
-from typing import Callable
-import tkinter as tk
 
-from interfaces import IUIManager, IWelcomeScreen, ISanctionsScreen
 from models.person import Person
 from gui import WelcomeScreen, SanctionsScreen
 
-class UIManager(IUIManager):
-    def __init__(self, tk_root: tk.Tk):
+"""
+UI Manager for handling screen transitions and updates.
+"""
+import tkinter as tk
+from gui import WelcomeScreen, SanctionsScreen
+
+class UIManager:
+    def __init__(self, tk_root):
         """
-        Initialize the UI manager with injected root window
+        Initialize the UI manager.
         
         Parameters:
         tk_root - The Tkinter root window
@@ -23,13 +26,20 @@ class UIManager(IUIManager):
             'on_return_to_welcome': None
         }
         
-        self.welcome_screen: IWelcomeScreen = None
-        self.sanctions_screen: ISanctionsScreen = None
+        self.welcome_screen = None
+        self.sanctions_screen = None
     
-    def set_handlers(self, on_file_selected: Callable, 
-                    on_start_processing: Callable, 
-                    on_return_to_welcome: Callable):
-     
+    def set_handlers(self, on_file_selected, 
+                    on_start_processing, 
+                    on_return_to_welcome):
+        """
+        Set event handlers.
+        
+        Parameters:
+        on_file_selected - Called when a file is selected
+        on_start_processing - Called when processing is started
+        on_return_to_welcome - Called when returning to welcome screen
+        """
         self.event_handlers['on_file_selected'] = on_file_selected
         self.event_handlers['on_start_processing'] = on_start_processing
         self.event_handlers['on_return_to_welcome'] = on_return_to_welcome

@@ -1,59 +1,44 @@
 import tkinter as tk
 
-from di_container import DIContainer
-from interfaces import IDownloadService
-from interfaces import IProcessingService
-from interfaces import IUIManager
-from interfaces import IFileRepository
-from interfaces import ISanctionsRepository
-
+from config import AppConfig
 from controllers.app_controller import AppController
 from controllers.ui_manager import UIManager
-from services.download_service import DownloadService  
-from services.processing_service import ProcessingService 
-from repositories.file_repository import FileRepository 
-from repositories.sanctions_repository import SanctionsRepository 
-from config import AppConfig
+from services.download_service import DownloadService
+from services.processing_service import ProcessingService
+from repositories.file_repository import FileRepository
+from repositories.sanctions_repository import SanctionsRepository
 
 class SanctionsApp:
     def __init__(self):
-        
+        # main window
         self.root = tk.Tk()
         self.root.title(AppConfig.WINDOW_TITLE)
         self.root.geometry(AppConfig.WINDOW_SIZE)
         
-        self.container = self._configure_dependencies()
+        # respoitories
+        self.file_repository = FileRepository()
+        self.sanctions_repository = SanctionsRepository()
         
-        self.download_service = self.container.resolve(IDownloadService)
-        self.processing_service = self.container.resolve(IProcessingService)
-        self.ui_manager = self.container.resolve(IUIManager)
+        # services with dependencies
+        self.download_service = DownloadService(self.sanctions_repository)
+        self.processing_service = ProcessingService(
+            self.file_repository, 
+            self.sanctions_repository
+        )
         
+        # UI manager
+        self.ui_manager = UIManager(self.root)
+        
+        # controller
         self.controller = AppController(
-            ui_manager=self.ui_manager,
-            download_service=self.download_service,
-            processing_service=self.processing_service
+            self.ui_manager,
+            self.download_service,
+            self.processing_service
         )
         
         self.controller.initialize()
     
-    def _configure_dependencies(self):
-      
-        container = DIContainer()
-    
-        container.register_instance(tk.Tk, self.root)
-        
-        container.register(IFileRepository, FileRepository)
-        container.register(ISanctionsRepository, SanctionsRepository)
-        
-        container.register(IDownloadService, DownloadService)
-        container.register(IProcessingService, ProcessingService)
-        
-        container.register(IUIManager, UIManager)
-        
-        return container
-    
     def run(self):
-    
         self.root.mainloop()
 
 def main():

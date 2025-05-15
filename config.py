@@ -1,16 +1,16 @@
 class AppConfig:
-    # Application settings
+   
     APP_NAME = "Sanctions Checker"
     VERSION = "1.0"
     
-    # Window settings
+    # window settings
     WINDOW_TITLE = "Provjera sankcioniranih osoba"
     WINDOW_SIZE = "1024x640"
     
-    # API settings
+    # API
     SANCTIONS_API_URL = "https://webgate.ec.europa.eu/fsd/fsf/public/files/csvFullSanctionsList_1_1/content?token=dG9rZW4tMjAxNw"
     
-    # File settings
+    # File columns
     REQUIRED_COLUMNS = ['IME','OIB', 'ADRESA']
     
     # UI messages
