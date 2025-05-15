@@ -1,5 +1,6 @@
+import sys
+sys.dont_write_bytecode = True
 import tkinter as tk
-
 from config import AppConfig
 from controllers.app_controller import AppController
 from controllers.ui_manager import UIManager
