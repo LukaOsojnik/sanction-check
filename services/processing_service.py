@@ -54,7 +54,6 @@ class ProcessingService(IProcessingService):
         on_complete - Callback when processing is complete (match_count, total_count)
         """
         def process_thread():
-        
             person_names = self.sanctions_repository.process_sanctions_data(sanctions_filename)
             if person_names is None:
                 if on_complete:
@@ -65,7 +64,6 @@ class ProcessingService(IProcessingService):
             match_count = 0
             
             for idx, person in enumerate(people_data):
-        
                 if on_progress:
                     on_progress(idx, total_people)
                 
@@ -74,28 +72,35 @@ class ProcessingService(IProcessingService):
                 if not filtered_names.empty:
                     person.count += 1
                     
-                    matching_names_lists = filtered_names['NameAlias_WholeName'].tolist()
-                    # Poravnamo listu ako sadrži liste
-                    person.matching_names = []
-                    for name_list in matching_names_lists:
-                        if isinstance(name_list, list):
-                            person.matching_names.extend(name_list)
-                        else:
-                            person.matching_names.append(name_list)
+                    # Get all Entity_LogicalId values from the matches
+                    matching_ids = filtered_names['Entity_LogicalId'].unique()
                     
-                if person.count > 0:
-                    if on_match_found:
-                        on_match_found(person)
-                    match_count += 1
+                    # Find all aliases for these entities
+                    all_aliases = person_names[person_names['Entity_LogicalId'].isin(matching_ids)]
+                    
+                    # Extract the WholeName values and flatten any nested lists
+                    person.matching_names = []
+                    for whole_name in all_aliases['NameAlias_WholeName'].tolist():
+                        if isinstance(whole_name, list):
+                            person.matching_names.extend(whole_name)
+                        else:
+                            person.matching_names.append(whole_name)
+                    
+                    if person.count > 0:
+                        if on_match_found:
+                            on_match_found(person)
+                        match_count += 1
             
             if on_progress:
                 on_progress(total_people, total_people)
                 
             if on_complete:
                 on_complete(match_count, total_people)
-        
+
         thread = threading.Thread(target=process_thread)
         thread.daemon = True
         thread.start()
+
+        return thread
         
         return thread
