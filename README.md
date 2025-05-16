@@ -1,12 +1,20 @@
-A simple Python application that can be run from a virtual environment or packaged into a standalone .exe using PyInstaller.
+Python app for comparing names in bulk size against EU list of sanctioned people.
+
+Techniques for comparison - normalization, tokenization, rapid fuzz (library for string matching).
 
 📁 Repository Contents
+
+    clients.csv - Example of what .csv file should look like
 
     main.py – Entry point of the application
 
     requirements.txt – List of required Python libraries
 
     myapp.spec – PyInstaller configuration file
+
+# CSV file explaination
+
+ - app takes coulmn "IME" and seperates it into "name" and "surname" parameters saving the last string as name and the rest as surname
     
 # Run main.py
 
