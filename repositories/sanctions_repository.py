@@ -163,18 +163,42 @@ class SanctionsRepository:
                         if name_score < 0.70:  # threshold value - name
                             name_score = 0
 
-            # if there is only WholeName saved for a person
-            if (surname_score == 0 or name_score == 0) and not pd.isna(row.get('NameAlias_WholeName', pd.NA)):
+            # Use NameAlias_WholeName if other matching is not sufficient
+            if ((pd.isna(row.get('NameAlias_FirstName', pd.NA)) or pd.isna(row.get('NameAlias_LastName', pd.NA))) and 
+                not pd.isna(row.get('NameAlias_WholeName', pd.NA))):
                 whole_name = normalize(row['NameAlias_WholeName'])
                 if whole_name:
-
+                    # Create a combined name from our input
                     combined_name = f"{normalized_name} {normalized_surname}".strip()
                     if combined_name:
-                      
-                        full_score = fuzz.token_set_ratio(combined_name, whole_name) / 100.0
-                        if full_score >= 0.8:  # threshold - wholename
-                            name_score = 1
-                            surname_score = 1
+                        # Split both names into tokens
+                        combined_tokens = combined_name.split()
+                        whole_tokens = whole_name.split()
+                        
+                        # Count matching tokens
+                        matching_token_count = 0
+                        
+                        # Check each token in the input name
+                        for input_token in combined_tokens:
+                            # Skip very short tokens
+                            if len(input_token) < 3:
+                                continue
+                                
+                            # check if token matches or is similar to any token in the whole name
+                            for whole_token in whole_tokens:
+                                if len(whole_token) < 3:
+                                    continue
+                                    
+                                # check for exact match or high similarity
+                                if input_token == whole_token or fuzz.ratio(input_token, whole_token) > 85:
+                                    matching_token_count += 1
+                                    break 
+                            
+                            # if 2 matching tokens then
+                            if matching_token_count > 1:
+                                name_score = 0.85
+                                surname_score = 0.85
+                                break 
             
             if surname_score > 0 and name_score > 0:
                 return 1  
