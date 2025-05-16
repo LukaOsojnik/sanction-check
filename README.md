@@ -18,14 +18,20 @@ cd myapp
 
 2. Create a virtual environment
 
+source /path/to/venv/bin/activate
+
 3. Install dependencies
 
 pip install -r requirements.txt
+
+4. Run main.py
 
 python main.py
 
 # Create an .exe with pyinstaller
 
 1. Make sure the virtual environment is activated
+
+source /path/to/venv/bin/activate
 
 pyinstaller myapp.spec
