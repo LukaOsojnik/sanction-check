@@ -1,6 +1,3 @@
-"""
-Application controller for coordinating services and UI.
-"""
 import tkinter.messagebox as messagebox
 import pandas as pd
 from config import AppConfig
@@ -8,7 +5,7 @@ from config import AppConfig
 class AppController:
     def __init__(self, ui_manager, download_service, processing_service):
         """
-        Initialize the application controller with dependencies.
+        Initialize the controller with dependencies.
         
         Parameters:
         ui_manager - Manager for UI components

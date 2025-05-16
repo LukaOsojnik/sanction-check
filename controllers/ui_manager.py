@@ -1,13 +1,5 @@
-"""
-UI Manager for handling screen transitions and updates.
-"""
-
 from models.person import Person
 from gui import WelcomeScreen, SanctionsScreen
-
-"""
-UI Manager for handling screen transitions and updates.
-"""
 import tkinter as tk
 from gui import WelcomeScreen, SanctionsScreen
 
@@ -33,9 +25,8 @@ class UIManager:
                     on_start_processing, 
                     on_return_to_welcome):
         """
-        Set event handlers.
-        
         Parameters:
+
         on_file_selected - Called when a file is selected
         on_start_processing - Called when processing is started
         on_return_to_welcome - Called when returning to welcome screen
@@ -56,7 +47,7 @@ class UIManager:
         )
     
     def show_welcome_screen(self):
-   
+        
         if self.sanctions_screen:
             self.sanctions_screen.hide()
         
