@@ -1,6 +1,3 @@
-"""
-PDF export module for generating reports from sanctions check results.
-"""
 import os
 import sys
 from datetime import datetime
@@ -16,14 +13,9 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
 class PDFExporter:
-    """
-    Handles PDF generation for sanctions check reports.
-    """
-    
+   
     def __init__(self, parent_window):
         """
-        Initialize the PDF exporter.
-        
         Parameters:
         parent_window - The parent window for showing dialogs
         """
@@ -31,7 +23,7 @@ class PDFExporter:
         
     def export_to_pdf(self, people_objects, status_update_callback=None):
         """
-        Export the sanctions check results to a PDF file
+        Export the results to a PDF file
         
         Parameters:
         people_objects - Dictionary of person objects to include in the report
@@ -83,7 +75,7 @@ class PDFExporter:
 
     def _generate_pdf(self, file_path, people_objects):
         """
-        Generate a PDF report with the sanctions check results
+        Generate a PDF with the results
         
         Parameters:
         file_path - Path where to save the PDF file

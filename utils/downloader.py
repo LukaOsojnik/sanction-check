@@ -1,5 +1,5 @@
 """
-Functions for downloading and caching sanctions data.
+Functions for downloading sanctions data.
 """
 import requests
 import tempfile

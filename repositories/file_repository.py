@@ -1,13 +1,9 @@
-"""
-Repository for loading people data from files.
-"""
 import os
 import pandas as pd
 from models.person import Person
 
 def split_name_column(full_name):
     """
-    Extract surname and name from a single column.
     The last word is treated as the name, everything else as the surname.
     """
     parts = str(full_name).strip().split()
@@ -17,11 +13,10 @@ def split_name_column(full_name):
 
 
 class FileRepository:
-    """Repository for file operations"""
 
     def load_people_from_file(self, file_path):
         """
-        Load people from a CSV or Excel file.
+        Load people from a csv or excel file.
         
         Parameters:
         file_path - Path to the file

@@ -1,6 +1,3 @@
-"""
-Service for downloading and managing sanctions data.
-"""
 import threading
 
 class DownloadService:

@@ -1,13 +1,8 @@
-"""
-Service for processing sanctions data.
-"""
 import threading
 
 class ProcessingService:
     def __init__(self, file_repository, sanctions_repository):
         """
-        Initialize service with repositories.
-        
         Parameters:
         file_repository - Repository for file operations
         sanctions_repository - Repository for sanctions data operations
@@ -24,7 +19,7 @@ class ProcessingService:
         on_complete - Function to call when done
         
         Returns:
-        thread - The thread that is running the load operation
+        thread - The thread is running the load operation
         """
         def load_thread():
             # get people from file
@@ -45,11 +40,11 @@ class ProcessingService:
                     on_match_found=None, 
                     on_complete=None):
         """
-        Check client list against sanctions database.
+        Check client list against sanctions list.
         
         Parameters:
         sanctions_filename - CSV with sanctions data
-        people_data - Clients to check
+        people_data - Clients
         on_progress - Updates UI progress bar
         on_match_found - Called when a match is found
         on_complete - Called when all checks are done
