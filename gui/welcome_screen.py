@@ -1,6 +1,3 @@
-"""
-Welcome screen module for the sanctions checking application.
-"""
 import tkinter as tk
 from tkinter import ttk, filedialog
 import os

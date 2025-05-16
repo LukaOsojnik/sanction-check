@@ -1,11 +1,9 @@
-"""
-Functions for downloading sanctions data.
-"""
 import requests
 import tempfile
 from config import AppConfig
 def download_with_caching():
-
+    """Used to download sanctions data"""
+    
     csv_url = AppConfig.SANCTIONS_API_URL
   
     try:
