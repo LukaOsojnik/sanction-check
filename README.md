@@ -34,4 +34,6 @@ python main.py
 
 source /path/to/venv/bin/activate
 
+2. Run pyinstaller on spec
+
 pyinstaller myapp.spec
