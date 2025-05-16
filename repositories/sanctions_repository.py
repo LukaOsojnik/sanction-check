@@ -136,7 +136,7 @@ class SanctionsRepository:
                 last_name = normalize(row['NameAlias_LastName'])
                 if last_name:
                     surname_score = fuzz.token_set_ratio(normalized_surname, last_name) / 100.0
-                    if surname_score < 0.8:  # Below threshold
+                    if surname_score < 0.8:  # threshold value - surname
                         surname_score = 0
             
             # NAME MATCHING
@@ -160,12 +160,24 @@ class SanctionsRepository:
                     
                     if alias_full_name:
                         name_score = fuzz.token_set_ratio(normalized_name, alias_full_name) / 100.0
-                        if name_score < 0.70:  # Below threshold
+                        if name_score < 0.70:  # threshold value - name
                             name_score = 0
+
+            # if there is only WholeName saved for a person
+            if (surname_score == 0 or name_score == 0) and not pd.isna(row.get('NameAlias_WholeName', pd.NA)):
+                whole_name = normalize(row['NameAlias_WholeName'])
+                if whole_name:
+
+                    combined_name = f"{normalized_name} {normalized_surname}".strip()
+                    if combined_name:
+                      
+                        full_score = fuzz.token_set_ratio(combined_name, whole_name) / 100.0
+                        if full_score >= 0.8:  # threshold - wholename
+                            name_score = 1
+                            surname_score = 1
             
-            # Calculate final score - only if both components are positive
             if surname_score > 0 and name_score > 0:
-                return 1  # Simplified to just indicate a match
+                return 1  
             return 0
         
         # apply scoring function
