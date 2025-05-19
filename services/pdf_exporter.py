@@ -177,8 +177,7 @@ class PDFExporter:
         # footer
         story.append(Spacer(1, 0.5*cm))
         story.append(Paragraph(
-            "Ovaj dokument je automatski generiran i ne predstavlja pravno mišljenje. "
-            "Za službene informacije posjetite MVEP tražilicu.", 
+            "Ovaj dokument je automatski generiran i ne predstavlja pravno mišljenje. ",
             ParagraphStyle('Footer', parent=styles['Italic'], fontName=base_font, fontSize=8)
         ))
         
