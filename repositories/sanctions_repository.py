@@ -89,7 +89,7 @@ class SanctionsRepository:
     
     def find_person_by_name(self, person_names_df: Any, person_name: str, person_surname: str) -> Any:
         """
-        This function attempts to find matches in the sanctions data using a multi-step approach:
+        This functionsearches for matches in the sanctions data using the following approach:
         1. First tries to match individual name components (first name, surname)
         2. Falls back to whole name matching when individual components aren't available
         
@@ -101,28 +101,28 @@ class SanctionsRepository:
         Returns:
         DataFrame containing matching records
         """
-        # Constants for matching thresholds
-        SURNAME_THRESHOLD = 0.8   # 80% similarity required for surnames
-        NAME_THRESHOLD = 0.7      # 70% similarity required for names
-        TOKEN_SIMILARITY = 0.85   # 85% similarity for token-level matching
+
+        SURNAME_THRESHOLD = 0.8   # 80% required for surnames
+        NAME_THRESHOLD = 0.7      # 70% required for names
+        TOKEN_SIMILARITY = 0.85   # 85% for token-level matching
         MIN_TOKEN_LENGTH = 3      # Minimum characters for a token to be considered
         
         def normalize(text: str) -> str:
-            """Normalize text by removing accents, lowercasing, and standardizing spaces"""
+            """Normalizes strings"""
             if not isinstance(text, str) or pd.isna(text):
                 return ""
             text = unicodedata.normalize('NFKD', text)
             text = text.encode('ascii', 'ignore').decode('utf-8')
             return text.lower().replace('-', ' ').strip()
         
-        # Normalize input
+        # normalize input
         normalized_name = normalize(person_name)
         normalized_surname = normalize(person_surname)
         
-        # Get name tokens for prefix checking
+        # get name tokens for prefix checking
         name_tokens = normalized_name.split() if normalized_name else []
         
-        # Check which columns are available
+        # check which columns are available
         has_first_name = 'NameAlias_FirstName' in person_names_df.columns
         has_middle_name = 'NameAlias_MiddleName' in person_names_df.columns
         has_last_name = 'NameAlias_LastName' in person_names_df.columns
@@ -132,14 +132,13 @@ class SanctionsRepository:
             if not short_name or not long_name or len(short_name) < MIN_TOKEN_LENGTH:
                 return False
             
-            # Is short name prefix of long name (e.g., Ana -> Analita or Dmitrij -> Dmitrijevich)
+            # ss short name prefix of long name (e.g., Ana -> Analita or Dmitrij -> Dmitrijevich)
             if long_name.startswith(short_name):
                 return True
             
             return False
         
         def calculate_match_score(row):
-            """Calculate matching score between input person and a sanctions data entry"""
 
             name_score = 0
             surname_score = 0
@@ -156,12 +155,12 @@ class SanctionsRepository:
             if name_tokens and has_first_name and not pd.isna(row.get('NameAlias_FirstName', pd.NA)):
                 first_name = normalize(row['NameAlias_FirstName'])
                 
-                # Check for prefix matches (faster than fuzzy matching)
+                # check for prefix matches (faster than fuzzy matching)
                 if any(check_prefix_match(token, first_name) for token in name_tokens) or \
                 any(check_prefix_match(first_name, token) for token in name_tokens):
                     name_score = 1
                 
-                # If no prefix match, try fuzzy matching
+                # if no prefix match, try fuzzy matching
                 elif normalized_name:
                     alias_full_name = ""
                     if not pd.isna(row.get('NameAlias_FirstName', pd.NA)):
