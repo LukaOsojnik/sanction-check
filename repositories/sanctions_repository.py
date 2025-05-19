@@ -88,46 +88,59 @@ class SanctionsRepository:
             return None
     
     def find_person_by_name(self, person_names_df: Any, person_name: str, person_surname: str) -> Any:
+        """
+        This function attempts to find matches in the sanctions data using a multi-step approach:
+        1. First tries to match individual name components (first name, surname)
+        2. Falls back to whole name matching when individual components aren't available
+        
+        Parameters:
+        person_names_df - DataFrame containing sanctions data with name components
+        person_name - First name of the person to search for
+        person_surname - Surname of the person to search for
+        
+        Returns:
+        DataFrame containing matching records
+        """
+        # Constants for matching thresholds
+        SURNAME_THRESHOLD = 0.8   # 80% similarity required for surnames
+        NAME_THRESHOLD = 0.7      # 70% similarity required for names
+        TOKEN_SIMILARITY = 0.85   # 85% similarity for token-level matching
+        MIN_TOKEN_LENGTH = 3      # Minimum characters for a token to be considered
         
         def normalize(text: str) -> str:
+            """Normalize text by removing accents, lowercasing, and standardizing spaces"""
             if not isinstance(text, str) or pd.isna(text):
                 return ""
             text = unicodedata.normalize('NFKD', text)
             text = text.encode('ascii', 'ignore').decode('utf-8')
             return text.lower().replace('-', ' ').strip()
         
+        # Normalize input
         normalized_name = normalize(person_name)
         normalized_surname = normalize(person_surname)
         
-        # get name tokens (for prefix checking)
+        # Get name tokens for prefix checking
         name_tokens = normalized_name.split() if normalized_name else []
         
+        # Check which columns are available
         has_first_name = 'NameAlias_FirstName' in person_names_df.columns
         has_middle_name = 'NameAlias_MiddleName' in person_names_df.columns
         has_last_name = 'NameAlias_LastName' in person_names_df.columns
         
-        # prefix checking - faster than rapid fuzz
         def check_prefix_match(short_name, long_name):
-            """Check if short_name is a prefix of long_name"""
-            if not short_name or not long_name:
+            """Check if short_name is a prefix of long_name (e.g., Ana -> Analita)"""
+            if not short_name or not long_name or len(short_name) < MIN_TOKEN_LENGTH:
                 return False
-                
-            # A name can be a prefix if it's at least 3 characters
-            if len(short_name) < 3:
-                return False
-                
-            # is short name prefix of long name = (Ana - Analita or Dmitrij - Dmitrijevich)
+            
+            # Is short name prefix of long name (e.g., Ana -> Analita or Dmitrij -> Dmitrijevich)
             if long_name.startswith(short_name):
-
-                if len(short_name) >= 3:
-                    return True
-                    
+                return True
+            
             return False
         
-        # if prefix is negative use rapid fuzz - expensive
         def calculate_match_score(row):
+            """Calculate matching score between input person and a sanctions data entry"""
 
-            # Start with zero scores
             name_score = 0
             surname_score = 0
             
@@ -136,22 +149,22 @@ class SanctionsRepository:
                 last_name = normalize(row['NameAlias_LastName'])
                 if last_name:
                     surname_score = fuzz.token_set_ratio(normalized_surname, last_name) / 100.0
-                    if surname_score < 0.8:  # threshold value - surname
+                    if surname_score < SURNAME_THRESHOLD:
                         surname_score = 0
             
             # NAME MATCHING
             if name_tokens and has_first_name and not pd.isna(row.get('NameAlias_FirstName', pd.NA)):
                 first_name = normalize(row['NameAlias_FirstName'])
                 
-                # Check for prefix matches
+                # Check for prefix matches (faster than fuzzy matching)
                 if any(check_prefix_match(token, first_name) for token in name_tokens) or \
                 any(check_prefix_match(first_name, token) for token in name_tokens):
-                    name_score = 0.85
-
+                    name_score = 1
+                
                 # If no prefix match, try fuzzy matching
                 elif normalized_name:
                     alias_full_name = ""
-                    if has_first_name and not pd.isna(row.get('NameAlias_FirstName', pd.NA)):
+                    if not pd.isna(row.get('NameAlias_FirstName', pd.NA)):
                         alias_full_name += normalize(row['NameAlias_FirstName']) + " "
                     if has_middle_name and not pd.isna(row.get('NameAlias_MiddleName', pd.NA)):
                         alias_full_name += normalize(row['NameAlias_MiddleName'])
@@ -160,54 +173,52 @@ class SanctionsRepository:
                     
                     if alias_full_name:
                         name_score = fuzz.token_set_ratio(normalized_name, alias_full_name) / 100.0
-                        if name_score < 0.70:  # threshold value - name
+                        if name_score < NAME_THRESHOLD:
                             name_score = 0
 
-            # Use NameAlias_WholeName if other matching is not sufficient
             if ((pd.isna(row.get('NameAlias_FirstName', pd.NA)) or pd.isna(row.get('NameAlias_LastName', pd.NA))) and 
                 not pd.isna(row.get('NameAlias_WholeName', pd.NA))):
                 whole_name = normalize(row['NameAlias_WholeName'])
                 if whole_name:
-                    # Create a combined name from our input
+                    # combine input name and surname
                     combined_name = f"{normalized_name} {normalized_surname}".strip()
                     if combined_name:
-                        # Split both names into tokens
+                        # split both names into tokens
                         combined_tokens = combined_name.split()
                         whole_tokens = whole_name.split()
                         
-                        # Count matching tokens
                         matching_token_count = 0
                         
-                        # Check each token in the input name
+                        # check each token in the input name
                         for input_token in combined_tokens:
-                            # Skip very short tokens
-                            if len(input_token) < 3:
+                            # skip short tokens
+                            if len(input_token) < MIN_TOKEN_LENGTH:
                                 continue
                                 
-                            # check if token matches or is similar to any token in the whole name
+                            # check if token matches or is similar to any token in whole name
                             for whole_token in whole_tokens:
-                                if len(whole_token) < 3:
+                                if len(whole_token) < MIN_TOKEN_LENGTH:
                                     continue
                                     
                                 # check for exact match or high similarity
-                                if input_token == whole_token or fuzz.ratio(input_token, whole_token) > 85:
+                                if input_token == whole_token or fuzz.ratio(input_token, whole_token) / 100.0 > TOKEN_SIMILARITY:
                                     matching_token_count += 1
                                     break 
                             
-                            # if 2 matching tokens then
+                            # Early termination once we have enough matches
                             if matching_token_count > 1:
-                                name_score = 0.85
-                                surname_score = 0.85
+                                name_score = 1
+                                surname_score = 1
                                 break 
             
             if surname_score > 0 and name_score > 0:
                 return 1  
             return 0
         
-        # apply scoring function
+        # apply scoring
         person_names_df['match_score'] = person_names_df.apply(calculate_match_score, axis=1)
         
-        # filter and sort
+        # filter matches
         result = person_names_df[person_names_df['match_score'] > 0]
         
         return result.drop(columns=['match_score'])
