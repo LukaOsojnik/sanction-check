@@ -3,6 +3,7 @@ from tkinter import ttk
 from tkinter import font as tkfont
 import webbrowser
 from services.pdf_exporter import PDFExporter
+from config import AppConfig
 
 class SanctionsScreen:
     def __init__(self, root, on_back_callback):
@@ -159,7 +160,7 @@ class SanctionsScreen:
 
     def _open_link(self, event):
       
-        webbrowser.open("https://mvep.gov.hr/vanjska-politika/mjere-ogranicavanja/eu-i-un-konsolidirani-popisi-mjera-ogranicavanja/272447")
+        webbrowser.open(AppConfig.SANCTIONS_API_URL)
     
     def _copy_name_surname(self, event):
    
